@@ -22,6 +22,9 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
+#if LUA_FLOAT_TYPE == LUA_FLOAT_FIX16
+#include <fix16.h>
+#endif
 
 
 
@@ -623,11 +626,18 @@ static int g_write (lua_State *L, FILE *f, int arg) {
   for (; nargs--; arg++) {
     if (lua_type(L, arg) == LUA_TNUMBER) {
       /* optimization: could be done exactly as for strings */
-      int len = lua_isinteger(L, arg)
-                ? fprintf(f, LUA_INTEGER_FMT,
-                             (LUAI_UACINT)lua_tointeger(L, arg))
-                : fprintf(f, LUA_NUMBER_FMT,
-                             (LUAI_UACNUMBER)lua_tonumber(L, arg));
+      int len;
+      if (lua_isinteger(L, arg)) {
+          len = fprintf(f, LUA_INTEGER_FMT, (LUAI_UACINT)lua_tointeger(L, arg));
+      }
+      else {
+          #if LUA_FLOAT_TYPE == LUA_FLOAT_FIX16
+          LUAI_UACNUMBER n = lua_tonumber(L, arg);
+          len = fprintf(f, LUA_NUMBER_FMT, n >> 16, n & 0xFFFF);
+          #else
+          len = fprintf(f, LUA_NUMBER_FMT, (LUAI_UACNUMBER) lua_tonumber(L, arg));
+          #endif
+      }
       status = status && (len > 0);
     }
     else {
@@ -773,4 +783,3 @@ LUAMOD_API int luaopen_io (lua_State *L) {
   createstdfile(L, stderr, NULL, "stderr");
   return 1;
 }
-

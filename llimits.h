@@ -112,9 +112,13 @@ typedef LUAI_UACINT l_uacInt;
 
 #define cast_void(i)	cast(void, (i))
 #define cast_byte(i)	cast(lu_byte, (i))
-#define cast_num(i)	cast(lua_Number, (i))
 #define cast_int(i)	cast(int, (i))
 #define cast_uchar(i)	cast(unsigned char, (i))
+#if LUA_FLOAT_TYPE == LUA_FLOAT_FIX16
+#define cast_num(i) fix16_from_int(cast(int, (i)))
+#else
+#define cast_num(i) cast(lua_Number, (i))
+#endif
 
 
 /* cast a signed lua_Integer to lua_Unsigned */
@@ -278,7 +282,7 @@ typedef unsigned long Instruction;
 */
 #if !defined(luai_nummod)
 #define luai_nummod(L,a,b,m)  \
-  { (m) = l_mathop(fmod)(a,b); if ((m)*(b) < 0) (m) += (b); }
+  { (m) = l_mathop(fmod)(a,b); if ((luai_nummul(L,m,b)) < 0) (m) += (b); }
 #endif
 
 /* exponentiation */
@@ -288,6 +292,16 @@ typedef unsigned long Instruction;
 
 /* the others are quite standard operations */
 #if !defined(luai_numadd)
+#if LUA_FLOAT_TYPE == LUA_FLOAT_FIX16
+#define luai_numadd(L,a,b)      (fix16_add(a, b))
+#define luai_numsub(L,a,b)      (fix16_sub(a, b))
+#define luai_nummul(L,a,b)      (fix16_mul(a, b))
+#define luai_numunm(L,a)        (-(a))
+#define luai_numeq(a,b)         ((a)==(b))
+#define luai_numlt(a,b)         ((a)<(b))
+#define luai_numle(a,b)         ((a)<=(b))
+#define luai_numisnan(a)        (!luai_numeq((a), (a)))
+#else
 #define luai_numadd(L,a,b)      ((a)+(b))
 #define luai_numsub(L,a,b)      ((a)-(b))
 #define luai_nummul(L,a,b)      ((a)*(b))
@@ -296,6 +310,7 @@ typedef unsigned long Instruction;
 #define luai_numlt(a,b)         ((a)<(b))
 #define luai_numle(a,b)         ((a)<=(b))
 #define luai_numisnan(a)        (!luai_numeq((a), (a)))
+#endif
 #endif
 
 

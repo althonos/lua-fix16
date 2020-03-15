@@ -53,9 +53,9 @@ LOCAL = $(TESTS) $(CWARNS) -g
 
 
 # enable Linux goodies
-MYCFLAGS= $(LOCAL) -std=c99 -DLUA_USE_LINUX -DLUA_COMPAT_5_2
+MYCFLAGS= $(LOCAL) -std=c99 -I libfixmath/libfixmath/ -DLUA_USE_LINUX -DLUA_COMPAT_5_2 -DLUA_FLOAT_TYPE=LUA_FLOAT_FIX16
 MYLDFLAGS= $(LOCAL) -Wl,-E
-MYLIBS= -ldl -lreadline
+MYLIBS= -ldl -lreadline -lfixmath
 
 
 CC= gcc

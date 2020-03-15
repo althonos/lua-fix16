@@ -837,7 +837,11 @@ static lua_Number adddigit (char *buff, int n, lua_Number x) {
   return x - dd;  /* return what is left */
 }
 
-
+#if LUA_FLOAT_TYPE == LUA_FLOAT_FIX16
+static int num2straux (char *buff, int sz, lua_Number x) {
+	return fix16_to_str(x, buff, 1);
+}
+#else
 static int num2straux (char *buff, int sz, lua_Number x) {
   /* if 'inf' or 'NaN', format it like '%g' */
   if (x != x || x == (lua_Number)HUGE_VAL || x == -(lua_Number)HUGE_VAL)
@@ -868,7 +872,7 @@ static int num2straux (char *buff, int sz, lua_Number x) {
     return n;
   }
 }
-
+#endif
 
 static int lua_number2strx (lua_State *L, char *buff, int sz,
                             const char *fmt, lua_Number x) {
@@ -953,7 +957,11 @@ static void addliteral (lua_State *L, luaL_Buffer *b, int arg) {
       int nb;
       if (!lua_isinteger(L, arg)) {  /* float? */
         lua_Number n = lua_tonumber(L, arg);  /* write as hexa ('%a') */
-        nb = lua_number2strx(L, buff, MAX_ITEM, "%" LUA_NUMBER_FRMLEN "a", n);
+				#if LUA_FLOAT_TYPE == LUA_FLOAT_FIX16
+					nb = lua_number2strx(L, buff, MAX_ITEM, "%" LUA_NUMBER_FRMLEN "x", n);
+				#else
+        	nb = lua_number2strx(L, buff, MAX_ITEM, "%" LUA_NUMBER_FRMLEN "a", n);
+				#endif
         checkdp(buff, nb);  /* ensure it uses a dot */
       }
       else {  /* integers */
@@ -1581,4 +1589,3 @@ LUAMOD_API int luaopen_string (lua_State *L) {
   createmetatable(L);
   return 1;
 }
-

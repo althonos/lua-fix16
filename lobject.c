@@ -28,6 +28,10 @@
 #include "lstring.h"
 #include "lvm.h"
 
+#if LUA_FLOAT_TYPE == LUA_FLOAT_FIX16
+#include <fix16.h>
+#include "compat/strtofix16.h"
+#endif
 
 
 LUAI_DDEF const TValue luaO_nilobject_ = {NILCONSTANT};
@@ -519,4 +523,3 @@ void luaO_chunkid (char *out, const char *source, size_t bufflen) {
     memcpy(out, POS, (LL(POS) + 1) * sizeof(char));
   }
 }
-
