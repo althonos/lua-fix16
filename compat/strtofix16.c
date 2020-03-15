@@ -1,5 +1,8 @@
 #include "strtofix16.h"
+#include <errno.h>
 #include <fix16.h>
+#include <stddef.h>
+#include <stdbool.h>
 #ifndef FIXMATH_NO_CTYPE
 #include <ctype.h>
 #else
@@ -23,6 +26,25 @@ static const uint32_t scales[8] = {
     /* 5 decimals is enough for full fix16_t precision */
     1, 10, 100, 1000, 10000, 100000, 100000, 100000
 };
+
+static char *itoa_loop(char *buf, uint32_t scale, uint32_t value, bool skip)
+{
+    while (scale)
+    {
+        unsigned digit = (value / scale);
+
+        if (!skip || digit || scale == 1)
+        {
+            skip = false;
+            *buf++ = '0' + digit;
+            value %= scale;
+        }
+
+        scale /= 10;
+    }
+    return buf;
+}
+
 
 fix16_t strtofix16(const char *nptr, char** endptr)
 {
