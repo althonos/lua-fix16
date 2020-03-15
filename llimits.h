@@ -270,8 +270,13 @@ typedef unsigned long Instruction;
 
 /* float division */
 #if !defined(luai_numdiv)
+#if LUA_FLOAT_TYPE == LUA_FLOAT_FIX16
+#define luai_numdiv(L,a,b)      (fix16_div(a, b))
+#else
 #define luai_numdiv(L,a,b)      ((a)/(b))
 #endif
+#endif
+
 
 /*
 ** modulo: defined as 'a - floor(a/b)*b'; this definition gives NaN when
